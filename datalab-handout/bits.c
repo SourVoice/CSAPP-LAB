@@ -316,7 +316,29 @@ int howManyBits(int x)
  */
 unsigned floatScale2(unsigned uf)
 {
-  return 2;
+	unsigned sign_exp= uf & 0x7F800000; //exp = uf & 011111111000...000
+	unsigned exp = sign_exp>>23;
+	unsigned frac = uf & 0x7FFFFF; 
+	unsigned s =  uf & 0x80000000;
+	unsigned inf = s|(0xFF<<23);
+
+	if(exp==0xFF){//not a number
+		return uf;
+	}
+
+	if(exp==0){
+		if(frac==0){//exp is all 0 and frac is all zero is interpreted as 0
+			return uf;
+		}
+		return s|(exp<<23)|(frac<<1);
+	}
+
+	exp = exp+1;	
+	if(exp==0xFF){// exp is all 1 and frac is all zero uf is interpreted as inf
+		return inf;
+	}
+
+  	return s|(exp<<23)|frac;   
 }
 /*
  * floatFloat2Int - Return bit-level equivalent of expression (int) f

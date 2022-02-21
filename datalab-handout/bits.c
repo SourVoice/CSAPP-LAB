@@ -354,7 +354,39 @@ unsigned floatScale2(unsigned uf)
  */
 int floatFloat2Int(unsigned uf)
 {
-  return 2;
+	unsigned sign_exp = uf & 0x7F800000;
+	unsigned exp  = sign_exp>>23;
+	unsigned frac = uf & 0x7FFFFF;
+	unsigned F = frac | 0x800000;//F = frac + 1
+	int E = exp - 0x7F;//E = exp - 127(0x7F)
+       	unsigned s = uf >> 31;
+	int ret = 0;
+
+	if(E < 0){
+		return 0;
+	}
+	
+	if(E > 0x1F){//E is bigger than 31 then the float is out range of int(-2^31 - 2^31-1)
+		return 0x80000000u;
+	}
+
+	if((E == 0x1F)&&(s==0)){
+		return 0x80000000u;
+	}
+
+	if(E > 0x17){
+		ret = F << (E - 0x17);//E > 23 then F should move E-23
+	}
+
+	if(E <= 0x17){
+		ret = F >> (0x17 - E);
+	}
+	
+	if(s==1){
+		ret = ~ret + 1;
+	}
+
+  	return ret;
 }
 /*
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x

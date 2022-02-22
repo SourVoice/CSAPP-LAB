@@ -316,29 +316,33 @@ int howManyBits(int x)
  */
 unsigned floatScale2(unsigned uf)
 {
-	unsigned sign_exp= uf & 0x7F800000; //exp = uf & 011111111000...000
-	unsigned exp = sign_exp>>23;
-	unsigned frac = uf & 0x7FFFFF; 
-	unsigned s =  uf & 0x80000000;
-	unsigned inf = s|(0xFF<<23);
+  unsigned sign_exp = uf & 0x7F800000; // exp = uf & 011111111000...000
+  unsigned exp = sign_exp >> 23;
+  unsigned frac = uf & 0x7FFFFF;
+  unsigned s = uf & 0x80000000;
+  unsigned inf = s | (0xFF << 23);
 
-	if(exp==0xFF){//not a number
-		return uf;
-	}
+  if (exp == 0xFF)
+  { // not a number
+    return uf;
+  }
 
-	if(exp==0){
-		if(frac==0){//exp is all 0 and frac is all zero is interpreted as 0
-			return uf;
-		}
-		return s|(exp<<23)|(frac<<1);
-	}
+  if (exp == 0)
+  {
+    if (frac == 0)
+    { // exp is all 0 and frac is all zero is interpreted as 0
+      return uf;
+    }
+    return s | (exp << 23) | (frac << 1);
+  }
 
-	exp = exp+1;	
-	if(exp==0xFF){// exp is all 1 and frac is all zero uf is interpreted as inf
-		return inf;
-	}
+  exp = exp + 1;
+  if (exp == 0xFF)
+  { // exp is all 1 and frac is all zero uf is interpreted as inf
+    return inf;
+  }
 
-  	return s|(exp<<23)|frac;   
+  return s | (exp << 23) | frac;
 }
 /*
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -354,39 +358,45 @@ unsigned floatScale2(unsigned uf)
  */
 int floatFloat2Int(unsigned uf)
 {
-	unsigned sign_exp = uf & 0x7F800000;
-	unsigned exp  = sign_exp>>23;
-	unsigned frac = uf & 0x7FFFFF;
-	unsigned F = frac | 0x800000;//F = frac + 1
-	int E = exp - 0x7F;//E = exp - 127(0x7F)
-       	unsigned s = uf >> 31;
-	int ret = 0;
+  unsigned sign_exp = uf & 0x7F800000;
+  unsigned exp = sign_exp >> 23;
+  unsigned frac = uf & 0x7FFFFF;
+  unsigned F = frac | 0x800000; // F = frac + 1
+  int E = exp - 0x7F;           // E = exp - 127(0x7F)
+  unsigned s = uf >> 31;
+  int ret = 0;
 
-	if(E < 0){
-		return 0;
-	}
-	
-	if(E > 0x1F){//E is bigger than 31 then the float is out range of int(-2^31 - 2^31-1)
-		return 0x80000000u;
-	}
+  if (E < 0)
+  {
+    return 0;
+  }
 
-	if((E == 0x1F)&&(s==0)){
-		return 0x80000000u;
-	}
+  if (E > 0x1F)
+  { // E is bigger than 31 then the float is out range of int(-2^31 - 2^31-1)
+    return 0x80000000u;
+  }
 
-	if(E > 0x17){
-		ret = F << (E - 0x17);//E > 23 then F should move E-23
-	}
+  if ((E == 0x1F) && (s == 0))
+  {
+    return 0x80000000u;
+  }
 
-	if(E <= 0x17){
-		ret = F >> (0x17 - E);
-	}
-	
-	if(s==1){
-		ret = ~ret + 1;
-	}
+  if (E > 0x17)
+  {
+    ret = F << (E - 0x17); // E > 23 then F should move E-23
+  }
 
-  	return ret;
+  if (E <= 0x17)
+  {
+    ret = F >> (0x17 - E);
+  }
+
+  if (s == 1)
+  {
+    ret = ~ret + 1;
+  }
+
+  return ret;
 }
 /*
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -403,5 +413,22 @@ int floatFloat2Int(unsigned uf)
  */
 unsigned floatPower2(int x)
 {
-  return 2;
+ unsigned sign_exp = x & 0x7F800000;
+ unsigned exp = sign_exp >> 23;
+ 
+ if(x > 127){
+	return 0x7F800000;
+ }
+
+ if(x < -149){//the minmium of the float is 0x00000001 also is 2^-149
+	 return 0;
+ }
+
+ if(x <= -127){//x is in (-149, -127)
+	 return 0x1 << (149 + x);
+ }
+
+  //normalizod
+  exp = 127 + x;//x = E = exp -127
+  return exp << 23;//when float is normalizod, the frac is interapted to be plus 1
 }

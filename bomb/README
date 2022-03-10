@@ -1,1 +1,10 @@
 This is an x86-64 bomb for self-study students. 
+
+record:
+
+#### phase_6
+two loop come first which prove that the six nums is between [1,6] and each is different
+Next, the input nums are all sub by 7.
+Then comes a link which is writen to the end fo the stack in memory.
+The link node contains a value, a id and a pointer.
+The nums you input after subed by 7 can change the order of the Link.
